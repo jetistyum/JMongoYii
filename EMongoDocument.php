@@ -176,7 +176,7 @@ class EMongoDocument extends EMongoModel{
 	/**
 	 * Returns MongoId based on $value
 	 *
-	 * @deprecated This function will become deprecated in favour of consistently
+	 * This function will become deprecated in favour of consistently
 	 * using the getPrimaryKey() function instead. Atm, however, the getPrimaryKey
 	 * function actually chains onto this method. If you see this and are wondering
 	 * about what you should do if you want custom primary keys etc just use the getPrimaryKey
@@ -190,7 +190,17 @@ class EMongoDocument extends EMongoModel{
 	 * @return MongoId
 	 */
 	public function getMongoId($value = null){
-		return $value instanceof MongoId ? $value : new MongoId($value);
+		if ($value instanceof MongoId)
+            return $value;
+        else{
+            try{
+                return new MongoId($value);
+            }
+            catch(MongoException $e){
+                return false;
+            }
+        }
+
 	}
 
 	/**

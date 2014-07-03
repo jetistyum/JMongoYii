@@ -472,13 +472,18 @@ class EMongoModel extends CModel{
 			return isset($this->_errors[$attribute]) ? reset($this->_errors[$attribute]) : null;
 
 		$prev=null;
-		foreach(explode('[',$attribute) as $piece){
-			if($prev===null&&isset($this->errors[$piece]))
-				$prev=&$this->_errors[$piece];
-			elseif(isset($prev[$piece]))
-			$prev=is_array($prev)?$prev[$piece]:$prev->$piece;
-		}
-		return $prev===null?null:reset($prev);
+        foreach (explode('[', $attribute) as $piece) {
+            if (!$piece)
+                continue;
+            if ($prev === null && isset($this->errors[$piece])) {
+                $prev = $this->_errors[$piece];
+            } elseif (isset($prev[$piece])) {
+                $prev = is_array($prev) ? $prev[$piece] : $prev->$piece;
+            } else {
+                $prev = null;
+            }
+        }
+        return $prev === null ? null : reset($prev);
 	}
 
 	/**

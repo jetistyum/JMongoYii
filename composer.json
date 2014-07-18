@@ -1,5 +1,5 @@
 {
-    "name": "sammaye/mongoyii",
+    "name": "jetistyum/mongoyii",
     "description": "A Yii MongoDB ORM",
     "keywords": ["mongodb","orm","yii"],
     "type": "yii-extension",
@@ -8,7 +8,12 @@
         {
             "name": "Sammaye",
             "homepage": "http://sammaye.wordpress.com"
+        },
+		{
+            "name": "Jetistyum",
+            "homepage": "http://mindbrothers.com"
         }
+		
     ],
     "autoload": {
     	"classmap": [

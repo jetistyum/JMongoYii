@@ -86,6 +86,18 @@ If you wish to setup the log to insert entries into MongoDB (like in `CDbLogRout
 			),
 		),
 
+### Providing a custom mongodb component/multiple connections
+
+Each `EMongoDocument` or `EMongoModel` inherited class, i.e. your models will have a overrideable function called `getMongoComponent()`. You can simply override this to 
+return your custom application component, for example:
+
+	public function getMongoComponent()
+	{
+		return Yii::app()->someweirddbconnectionINIT;
+	}
+
+and that model will now use that new application component to source its information. This is also helpful if you are using different databases for different models.
+
 ### Composer
 
 MongoYii fully supports Composer and is listed on [packagist](https://packagist.org/packages/sammaye/mongoyii).
@@ -424,6 +436,20 @@ If you access an array magically you cannot, in the same breath, manipulate it s
 
 Querying attempts to expose the native MongoDB querying language as much as possible. A `EMongoCriteria` class is provided, however, it is not required and does not provide any more functionality
 than just doing it via arrays. The `EMongoCriteria` class is not relied on anywhere and is not needed.
+
+### Caching
+
+MongoYii, as well supporting full caching through EMongoCacheDependency (see towards the bottom of this documentation), supports active model query caching as 
+defined in the [documentation](http://www.yiiframework.com/doc/guide/1.1/en/caching.data).
+
+An example of this can be shown by:
+
+	$dep = new EMongoCacheDependency('article', [['_id' => new MongoId('540477726803fad51b8b4568')], 'sort' => ['a' => 1]]);
+	$c = Article::model()->cache(4, $dep)->findAll();
+
+The results of `$c` will be drawn from the cache table into your application until the dependency is considered to expire.
+
+Just like in normal Yii active record you can also say how many queries after the dependency should actually be cached.
 
 ### find()
 
@@ -903,7 +929,7 @@ version you have is upto date.
 
 ## Database migrations
 
-Even though MongoDB is schemaless, you sometimes may need to modify your records. To do so, you may use the `yiic mongomigrate` command. 
+Even though MongoDB is schemaless, you sometimes may need to modify your records. To do so, you may use the `yiic migratemongo` command. 
 It works exactly like `yiic migrate`. For detailed usage, please refer to the [yii docs](http://www.yiiframework.com/doc/guide/1.1/en/database.migration).
 
 To enable the command in your application, add a `commandMap` entry in your config file:
@@ -1079,7 +1105,59 @@ It uses the same API as `CPagination` and requires no extra documentation (outsi
 
 ### EMongoCacheDependency
 
-Similar in kind to `CDbCacheDependency` only it does not take a `sql` parameter but intead an `EMongoCursor`. Created by yours truly.
+This is to enable MongoYiis edition of [caching](http://www.yiiframework.com/doc/guide/1.1/en/caching.data).
+
+Example usage of this class would be:
+
+	$cache = Yii::app()->cache;
+	$cache->set(
+		'12', 
+		'dfgdfgf', 
+		30,
+		new EMongoCacheDependency('t', [
+			[],
+			'limit' => 5
+		])
+	);
+	var_dump($cache->get('12'));
+
+would return `dfgdfgf` when the cache is not invalid but if you invalidate it it will return `false` per the documentation.
+
+As such if I were then to run:
+
+	$cache = Yii::app()->cache;
+	Yii::app()->mongodb->t->insert(['g' => 1]);
+	var_dump($cache->get('12'));
+
+I would get false as the return value.
+
+The constructor for this cache class accepts two parameters, one being the collection name and the other being the query.
+
+The first (`0`) index of the query parameter will always be the `find()` query, this is in fact how the query parameter is parsed by the class:
+
+	$query = array();
+	if(isset($this->query[0])){
+		$query = $this->query[0];
+	}
+		
+	$cursor = $this->getDbConnection()->{$this->collection}->find($query);
+		
+	if(isset($this->query['sort'])){
+		$cursor->sort($this->query['sort']);
+	}
+		
+	if(isset($this->query['skip'])){
+		$cursor->limit($this->query['skip']);
+	}
+		
+	if(isset($this->query['limit'])){
+		$cursor->limit($this->query['limit']);
+	}
+
+currently the quey parameter of this class only accepts the parts to be shown as parsed above, it does not currently allow you to actually grab the cursor directly.
+
+**Note:** Do not put a cursor into this class, it will not save to your datastore in a manner that the PHP driver for MongoDB will be able to use it. Instead you will be 
+told that the `MongoCursor` was not correctly inited by its parent class(es).
 
 ## Versioning
 

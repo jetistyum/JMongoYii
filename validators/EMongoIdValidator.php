@@ -11,8 +11,6 @@ class EMongoIdValidator extends CValidator
 {
 	public $allowEmpty = true;
 
-	public $allowEmpty=true;
-
     protected function validateAttribute($object, $attribute)
     {
 		$value=$object->$attribute;

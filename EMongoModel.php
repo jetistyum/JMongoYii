@@ -525,8 +525,8 @@ class EMongoModel extends CModel
 		$attribute = trim(strtr($attribute, '][', '['), ']');
 		if(strpos($attribute, '[') === false){
 			return isset($this->_errors[$attribute]) ? reset($this->_errors[$attribute]) : null;
-
-		$prev=null;
+		}
+		$prev = null;
         foreach (explode('[', $attribute) as $piece) {
             if (!$piece)
                 continue;

@@ -27,8 +27,6 @@ class EMongoIdValidator extends CValidator
             }
         } catch (MongoException $e) {
             $this->addError($object, $attribute, !empty($this->message) ? Yii::t($this->message) : $e->getError());
-        } catch (MongoException $e) {
-            $this->addError($object, $attribute, !empty($this->message) ? Yii::t($this->message) : $e->getError());
         }
     }
 }

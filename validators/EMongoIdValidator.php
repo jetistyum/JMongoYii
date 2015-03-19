@@ -26,7 +26,7 @@ class EMongoIdValidator extends CValidator
                 $object->$attribute = $object->$attribute instanceof MongoId ? $object->$attribute : new MongoId($object->$attribute);
             }
         } catch (MongoException $e) {
-            $this->addError($object, $attribute, !empty($this->message) ? Yii::t($this->message) : $e->getError());
+            $this->addError($object, $attribute, !empty($this->message) ? Yii::t('db_errors', $this->message) : $e->getError());
         }
     }
 }

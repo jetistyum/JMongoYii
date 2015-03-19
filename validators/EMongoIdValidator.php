@@ -9,27 +9,26 @@
  */
 class EMongoIdValidator extends CValidator
 {
-	public $allowEmpty = true;
+    public $allowEmpty = true;
 
-	protected function validateAttribute($object,$attribute)
-	{
-		$value = $object->$attribute;
-		if($this->allowEmpty && $this->isEmpty($value)){
-			return;
-        try{
-		if(is_array($value)) {
-			foreach ($value as $key=>$attr) {
-				$value[$key] = $attr instanceof MongoId ? $attr : new MongoId($attr);
-			}
-			$object->$attribute = $value;
-		}else{
-			$object->$attribute = $object->$attribute instanceof MongoId ? $object->$attribute : new MongoId($object->$attribute);
-		}
+    protected function validateAttribute($object, $attribute)
+    {
+        $value = $object->$attribute;
+        if ($this->allowEmpty && $this->isEmpty($value))
+            return;
+        try {
+            if (is_array($value)) {
+                foreach ($value as $key => $attr) {
+                    $value[$key] = $attr instanceof MongoId ? $attr : new MongoId($attr);
+                }
+                $object->$attribute = $value;
+            } else {
+                $object->$attribute = $object->$attribute instanceof MongoId ? $object->$attribute : new MongoId($object->$attribute);
+            }
+        } catch (MongoException $e) {
+            $this->addError($object, $attribute, !empty($this->message) ? Yii::t($this->message) : $e->getError());
         } catch (MongoException $e) {
             $this->addError($object, $attribute, !empty($this->message) ? Yii::t($this->message) : $e->getError());
         }
-        catch (MongoException $e){
-            $this->addError($object, $attribute, !empty($this->message)?Yii::t($this->message):$e->getError());
-        }
-	}
+    }
 }

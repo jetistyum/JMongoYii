@@ -383,7 +383,7 @@ class EMongoModel extends CModel
         // Let's get the parts of the relation to understand it entirety of its context
         $cname = $relation[1];
         $fkey = $relation[2];
-        $pk = isset($relation['on']) ? $this->{$relation['on']} : $this->getPrimaryKey();
+        $pk = isset($relation['on']) ? $this->getValueByAlias($relation['on']) : $this->getPrimaryKey();
 
         // This takes care of cases where the PK is an DBRef and only one DBRef, where it could
         // be mistaken as a multikey field
@@ -462,6 +462,19 @@ class EMongoModel extends CModel
     public function hasRelated($name)
     {
         return isset($this->_related[$name]) || array_key_exists($name, $this->_related);
+    }
+
+    public function getValueByAlias($alias){
+        if (strpos($alias, '.')){
+            $keys = explode('.', $alias);
+            $key = array_shift($keys);
+            $value = $this->{$key};
+            while($key = array_pop($keys)){
+                $value = $value[$key];
+            }
+            return $value;
+        }
+        return $this->{$alias};
     }
 
     /**

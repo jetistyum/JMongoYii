@@ -1214,7 +1214,7 @@ class EMongoDocument extends EMongoModel{
 	{
 		$this->trace(__FUNCTION__);
 
-		foreach($this->getSafeAttributeNames() as $attribute){
+		foreach($this->getSafeNonVirtualAttributeNames() as $attribute){
 
 			$value = $this->{$attribute};
 			if($value !== null && $value !== ''){
@@ -1263,6 +1263,33 @@ class EMongoDocument extends EMongoModel{
 		}
 		return new EMongoDataProvider($this, array('criteria' => array('condition' => $query, 'project' => $project, 'sort' => $sort)));
 	}
+
+	public function getSafeNonVirtualAttributeNames()
+	{
+		$attributes=array();
+		$unsafe=array();
+		foreach($this->getValidators() as $validator)
+		{
+			if(!$validator->safe)
+			{
+				foreach($validator->attributes as $name)
+					$unsafe[]=$name;
+			}
+			else
+			{
+				foreach($validator->attributes as $name)
+					$attributes[$name]=true;
+			}
+		}
+
+		foreach($unsafe as $name)
+			unset($attributes[$name]);
+
+		$non_virtual_attributes = $this->getDbConnection()->getFieldCache(get_class($this));
+		$intersect =array_intersect(array_keys($attributes), $non_virtual_attributes);
+		return $intersect;
+	}
+
 
 	/**
 	 * This is an aggregate helper on the model

@@ -1087,6 +1087,9 @@ class EMongoDocument extends EMongoModel
         if ($criteria instanceof EMongoCriteria) {
             $criteria = $criteria->getCondition();
         }
+        $dbCriteria = $this->getDbCriteria();
+        $dbCond = isset($dbCriteria['condition'])?$dbCriteria['condition']:[];
+        $criteria = $this->mergeCriteria($dbCond, $criteria);
         $options = array_merge($this->getDbConnection()->getDefaultWriteConcern(), $options);
 
         if (YII_DEBUG) {

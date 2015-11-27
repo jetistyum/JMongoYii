@@ -1224,9 +1224,9 @@ class EMongoDocument extends EMongoModel
         $newcriteria->setSort($sort);
         $this->mergeDbCriteria($newcriteria);
         $params = $this->getDbCriteria();
-        $query = $params['condition'];
-        $project = $params['project'];
-        $sort = $params['sort'];
+        $query = CMap::mergeArray($params['condition'], $query);
+        $project = CMap::mergeArray($params['project'], $project);
+        $sort = CMap::mergeArray($params['sort'], $sort);
 
         foreach ($this->getSafeNonVirtualAttributeNames() as $attribute) {
 

@@ -18,6 +18,12 @@ class EMongoUniqueValidator extends CValidator
 	 * Note, by setting it to false, you are assuming the attribute type is string.
 	 */
 	public $caseSensitive = true;
+
+
+	/**
+	 * @var bool wether the attribute value could be array and each value of array have to be unique
+	 */
+	public $searchInArrays = false;
 	
 	/**
 	 * @var boolean whether the attribute value can be null or empty. Defaults to true,
@@ -74,25 +80,38 @@ class EMongoUniqueValidator extends CValidator
 		if($this->allowEmpty && $this->isEmpty($value)){
 			return;
 		}
-		
+
 		$className = $this->className === null ? get_class($object) : Yii::import($this->className);
 		$attributeName = $this->attributeName === null ? $attribute : $this->attributeName;
 
+		if (is_array($value) && $this->searchInArrays){
+			$search = [$attributeName=>['$in'=>$this->getSearchValue($object, $attributeName)]];
+		}
+		else{
+			$search = [$attributeName=>$this->getSearchValue($object, $attributeName)];
+		}
+		
+
+
 		// We get a RAW document here to prevent the need to make yet another active record instance
-		$doc = EMongoDocument::model($className)
-			->getCollection()
-			->findOne(
-				array_merge(
-					$this->criteria, 
-					array($attributeName => $this->caseSensitive ? $value : new MongoRegex('/' . $value . '/i'))
-				)
-			);
+		$doc = EMongoDocument::model($className)->getCollection()->findOne(array_merge($this->criteria,$search));
 
 		// If a doc was fund and it isn't this doc, as decided by the primnary key
 		if($doc && (string)$doc[$object->primaryKey()] != (string)$object->getPrimaryKey()){
 			// Then it ain't unique
 			$message = $this->message !== null ? $this->message : Yii::t('yii', '{attribute} "{value}" has already been taken.');
+			if (is_array($value)){
+				$value = implode(', ', $value);
+			}
 			$this->addError($object, $attribute, $message, array('{value}' => CHtml::encode($value)));
 		}else{}
+	}
+
+	protected function getSearchValue($object, $attribute){
+		$value = $object->$attribute;
+		if ($this->caseSensitive)
+			return $value;
+
+		return array_map(function($elem){return new MongoRegex('/' . $elem . '/i');}, $value);
 	}
 }

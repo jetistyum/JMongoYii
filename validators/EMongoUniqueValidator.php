@@ -111,7 +111,13 @@ class EMongoUniqueValidator extends CValidator
 		$value = $object->$attribute;
 		if ($this->caseSensitive)
 			return $value;
+		elseif(is_array($value)){
+			return array_map(function($elem){return new MongoRegex('/' . $elem . '/i');}, $value);
+		}
+		else{
+			return new MongoRegex('/' . $value . '/i');
+		}
 
-		return array_map(function($elem){return new MongoRegex('/' . $elem . '/i');}, $value);
+
 	}
 }
